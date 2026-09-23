@@ -1,0 +1,259 @@
+esphome:
+  name: esp32-power
+  friendly_name: esp32-power
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Esp32-Power Fallback Hotspot"
+    password: !secret fallback_password
+
+captive_portal:
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+switch:
+   - platform: restart
+     name: "Restart"
+
+sensor:
+################ Channel 1 ################
+  - platform: adc
+    pin: GPIO34
+    id: ct1_adc
+    attenuation: auto
+    internal: true
+
+  - platform: ct_clamp
+    sensor: ct1_adc
+    id: ct1_a
+    update_interval: 1s
+    sample_duration: 200ms
+    filters:
+      - calibrate_linear:
+         method: exact
+         datapoints:
+          - 0.019 -> 0
+          - 0.020 -> 2
+          - 0.047 -> 2.2
+          - 0.060 -> 4.6
+          - 0.072 -> 5.5
+          - 0.083 -> 7
+          - 0.09 -> 7.6
+          - 0.092 -> 8
+          - 0.097 -> 8.47
+          - 0.122 -> 10.6
+          - 0.145 -> 12.9
+          - 0.242 -> 21.64
+          - 0.35 -> 31
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 3
+          send_first_at: 3
+      - lambda: |-
+          if (x < 0) {
+            return 0;
+          } else if (x > 32) {
+            return 32;
+          } else {
+            return x;
+          }
+
+  - platform: template
+    name: CT1 Current
+    id: ct1_current
+    lambda: return id(ct1_a).state;
+    accuracy_decimals: 3
+    unit_of_measurement: a
+    icon: "mdi:current-ac"
+    update_interval: 1s
+
+################ Channel 2 ################
+  - platform: adc
+    pin: GPIO35
+    id: ct2_adc
+    attenuation: auto
+    internal: true
+
+  - platform: ct_clamp
+    sensor: ct2_adc
+    id: ct2_a
+    update_interval: 1s
+    sample_duration: 200ms
+    filters:
+      - calibrate_linear:
+         method: exact
+         datapoints:
+          - 0.005 -> 0.2
+          - 0.006 -> 0.4
+          - 0.010 -> 1
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 3
+          send_first_at: 3
+      - lambda: |-
+          if (x < 0) {
+            return 0;
+          } else if (x > 1) {
+            return 1;
+          } else {
+            return x;
+          }
+
+  - platform: template
+    name: CT2 Current
+    id: ct2_current
+    lambda: return id(ct2_a).state;
+    accuracy_decimals: 3
+    unit_of_measurement: a
+    icon: "mdi:current-ac"
+    update_interval: 1s
+
+################ Channel 3 ################
+  - platform: adc
+    pin: GPIO36
+    id: ct3_adc
+    attenuation: auto
+    internal: true
+
+  - platform: ct_clamp
+    sensor: ct3_adc
+    id: ct3_a
+    update_interval: 1s
+    sample_duration: 200ms
+    filters:
+      - calibrate_linear:
+         method: exact
+         datapoints:
+          - 0 -> 0
+          - 0.004 -> 1
+          - 0.005 -> 3
+          - 0.018 -> 3.5
+          - 0.023 -> 4
+          - 0.026 -> 5
+          - 0.033 -> 6.5
+          - 0.041 -> 7
+          - 0.044 -> 7.1
+          - 0.047 -> 7.2
+          - 0.050 -> 7.3
+          - 0.054 -> 7.5
+          - 0.055 -> 7.5
+          - 0.056 -> 7.8
+          - 0.058 -> 8
+          - 0.060 -> 8.5
+          - 0.062 -> 9
+          - 0.068 -> 10
+          - 0.069 -> 10.5
+          - 0.072 -> 11
+          - 0.073 -> 11.5
+          - 0.078 -> 12
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 3
+          send_first_at: 3
+      - lambda: |-
+          if (x < 0) {
+            return 0;
+          } else if (x > 13) {
+            return 13;
+          } else {
+            return x;
+          }
+
+  - platform: template
+    name: CT3 Current
+    id: ct3_current
+    lambda: return id(ct3_a).state;
+    accuracy_decimals: 3
+    unit_of_measurement: a
+    icon: "mdi:current-ac"
+    update_interval: 1s
+
+################ Channel 4 ################
+  - platform: adc
+    pin: GPIO39
+    id: ct4_adc
+    attenuation: auto
+    internal: true
+
+  - platform: ct_clamp
+    sensor: ct4_adc
+    id: ct4_a
+    update_interval: 1s
+    sample_duration: 200ms
+    filters:
+      - calibrate_linear:
+         method: exact
+         datapoints:
+          - 0.033 -> 0.0
+          - 0.037 -> 3.22
+          - 0.038 -> 3.45
+          - 0.042 -> 4.80
+          - 0.077 -> 7.85
+          - 0.080 -> 9.36
+          - 0.085 -> 10.5
+          - 0.089 -> 10.7
+          - 0.092 -> 11
+          - 0.093 -> 11.2
+          - 0.096 -> 11.5
+          - 0.100 -> 12
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 3
+          send_first_at: 3
+      - lambda: |-
+          if (x < 0) {
+            return 0;
+          } else if (x > 13) {
+            return 13;
+          } else {
+            return x;
+          }
+
+  - platform: template
+    name: CT4 Current
+    id: ct4_current
+    lambda: return id(ct4_a).state;
+    accuracy_decimals: 3
+    unit_of_measurement: a
+    icon: "mdi:current-ac"
+    update_interval: 1s
+
+################################################
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: ESP IP Address
+    ssid:
+      name: ESP Connected SSID
+    bssid:
+      name: ESP Connected BSSID
+    mac_address:
+      name: ESP Mac Wifi Address
+    scan_results:
+      name: ESP Latest Scan Results
+    dns_address:
+      name: ESP DNS Address
